@@ -1,14 +1,14 @@
-#Projet 'Intégration des données'
+# Projet 'Intégration des données'
 
-##Prerequisites:
+## Prerequisites:
 
-*__Docker__
+* __Docker__
 `sudo apt-get install docker`  
 `sudo apt-get install docker-compose`  
-*__Console client for Postgresql__
+* __Console client for Postgresql__
 `sudo apt-get install postgresql-client`
-*__GUI DB Manager__
+* __GUI DB Manager__
 [DBeaver download](https://dbeaver.io/download/)
 
-##Connection string to local DB in docker
+## Connection string to local DB in docker  
 `psql postgresql://localhost:5432/postgres --username=postgrespsql`
