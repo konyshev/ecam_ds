@@ -11,4 +11,10 @@
 [DBeaver download](https://dbeaver.io/download/)
 
 ## Connection string to local DB in docker  
-`psql postgresql://localhost:5432/postgres --username=postgrespsql`
+`psql postgresql://localhost:5432/postgres --username=postgres`
+
+## Run sql script  
+`\i ./create_tables.sql`
+
+## Quit  
+`\q`

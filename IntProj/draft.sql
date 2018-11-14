@@ -23,4 +23,4 @@ CREATE TABLE sample_submission
 /* export */
 --COPY sample_submission TO '/home/jovyan/ecam_ds/data/sample_submission_db.csv' DELIMITER ',' CSV HEADER;
 
-select * from pg_tables;
+select tablename from pg_tables limit 5;

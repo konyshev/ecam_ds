@@ -1,6 +1,5 @@
 /* table yako_data_structure */
 
-
 CREATE TABLE yako_data_structure
 (
 id numeric,
