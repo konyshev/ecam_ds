@@ -12,7 +12,7 @@
 `psql postgresql://localhost:5432/postgres --username=postgres`
 
 ## Order of execution scripts  
-`\i ./create_helpers.sql`
+`\i ./create_helpers.sql`  
 `\i ./create_tables.sql`
 
 ## Quit  
