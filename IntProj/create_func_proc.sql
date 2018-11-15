@@ -12,17 +12,17 @@ DROP PROCEDURE IF EXISTS yk_csv_to_table(text,text);
 CREATE OR REPLACE PROCEDURE yk_csv_to_table(in_target_table text,in_csv_path text)
 AS $$
 DECLARE
-p_column_names text;
+var_column_names text;
 cmd_str text;
 BEGIN
-	SELECT string_agg(column_name, ',') into p_column_names
+	SELECT string_agg(column_name, ',') into var_column_names
 	 FROM information_schema.columns
 	WHERE table_schema = 'public'
 	  AND table_name   = in_target_table;
 	
 	cmd_str := format(E'copy %s(%s) from %L DELIMITER \',\' CSV HEADER;',
 						in_target_table, 
-						p_column_names, 
+						var_column_names, 
 						in_csv_path);
 	raise notice 'Command to execute: %',cmd_str;
 	execute cmd_str;
@@ -37,41 +37,26 @@ DROP PROCEDURE IF EXISTS yk_create_tables(text);
 CREATE OR REPLACE PROCEDURE yk_create_tables(in_data_struct_table text)
 AS $$
 DECLARE
-p_column_names text;
-cmd_str text;
-BEGIN
-	SELECT string_agg(column_name, ',') into p_column_names
-	 FROM information_schema.columns
-	WHERE table_schema = 'public'
-	  AND table_name   = in_target_table;
-	
-	cmd_str := format(E'copy %s(%s) from %L DELIMITER \',\' CSV HEADER;',
-						in_target_table, 
-						p_column_names, 
-						in_csv_path);
-	raise notice 'Command to execute: %',cmd_str;
-	execute cmd_str;
-END;
-$$ LANGUAGE plpgsql;
+--cmd_str text;
+var_table_name TEXT;
+var_column_name TEXT;
+curs_tables_req TEXT;
 
-
-/*
-$$
-DECLARE
-	var_table_name TEXT;
---	var_column_name TEXT;
-    curs_tables CURSOR FOR select distinct table_name from yako_data_structure;
---    curs_columns CURSOR(p_tname text) FOR select distinct column_name from yako_data_structure where table_name = p_tname;
+curs_tables refcursor;
+curs_columns refcursor;
 BEGIN
-	OPEN curs_tables; 
-    LOOP 
+	curs_tables_req := format(E'select distinct table_name from %s',in_data_struct_table);
+	--curs_columns_req := format(E'select distinct column_name from yako_data_structure where table_name') = p_tname;
+
+	OPEN curs_tables FOR EXECUTE(curs_tables_req); 
+	LOOP 
 	   	FETCH curs_tables INTO var_table_name;
 	    EXIT WHEN NOT FOUND;
+		RAISE NOTICE '%',var_table_name;
+--		EXECUTE format('DROP TABLE %I', var_table_name);	   
+		EXECUTE format('CREATE TABLE %I()', var_table_name);	   
+	END LOOP;
 
-	   	PRINT var_table_name;
---		EXECUTE format('CREATE TABLE %I()', var_table_name);	   
-   	END LOOP;
-
-END;$$ 
-LANGUAGE plpgsql;
-*/
+--	RAISE NOTICE '%',curs_req;
+END;
+$$ LANGUAGE plpgsql;

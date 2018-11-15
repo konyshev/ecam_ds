@@ -22,7 +22,7 @@ CALL yk_csv_to_table('yk_data_struct',
 					 '/home/jovyan/ecam_ds/data/input/HomeCredit_columns_description.csv');
 
 /* check and cleanup table*/
---select * from yk_data_struct; 
+select * from yk_data_struct; 
 --delete from yk_data_struct;
 
 /*
@@ -32,10 +32,10 @@ CALL yk_csv_to_table('yk_data_struct',
  * */
 					
 /* Rename 'application_{train|test}.csv' case */
-select distinct table_name from yako_data_struct;
+select distinct table_name from yk_data_struct;
 
 update 
-   yako_data_struct
+   yk_data_struct
 set
    table_name = REPLACE (
    table_name,
@@ -46,12 +46,11 @@ where table_name = 'application_{train|test}.csv';
 
 /* check if case is fixed */
 select distinct table_name 
-  from yako_data_struct 
+  from yk_data_struct 
  where table_name ~ '^appl';
 
 /* remove .csv and convert table name to upper case */
-update 
-   yako_data_struct
+update yk_data_struct
 set
    table_name = UPPER(REPLACE (
    table_name,
@@ -60,10 +59,10 @@ set
    ));
 
 /* setup correct sequence number */
-select setval('yako_data_struct_id_seq',  (select max(id) from yk_data_struct));
+select setval('yk_data_struct_id_seq',  (select max(id) from yk_data_struct));
 
 /* add records for APPLICATION_TEST table */
-insert into yako_data_struct 
+insert into yk_data_struct 
 select nextval('yk_data_struct_id_seq') as id,
 	   'APPLICATION_TEST' as table_name,
 	   column_name,
@@ -79,6 +78,7 @@ from yk_data_struct where table_name = 'APPLICATION_TRAIN';
 
 select distinct table_name from yk_data_struct order by 1;
 
+CALL yk_create_tables('yk_data_struct');
 
 --CREATE TABLE yako_application_test();
 
