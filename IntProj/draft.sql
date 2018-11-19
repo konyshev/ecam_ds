@@ -72,57 +72,7 @@ $BODY$;
 
 
 
-CREATE TABLE client
-(
-	ncli varchar(10) NOT NULL,
-	nom varchar(32) NOT NULL,
-	addresse varchar(60) NULL,
-	localite varchar(30) NULL,
-	cat varchar(2),
-	compte decimal(9,2) NULL,
-	PRIMARY KEY (ncli));
 
---select * from client;
-
-CREATE TABLE commande
-(
-	ncom varchar(12) NOT NULL,
-	datecom date NOT NULL,
-	ncli varchar(10) NOT NULL,
-	PRIMARY KEY (ncom),
-	FOREIGN KEY (ncli) REFERENCES client (ncli)
-);
-
-select * from commande;
-
-CREATE TABLE detail
-(
-	ncom varchar(12) NOT NULL,
-	npro varchar(15) NOT NULL,
-	qcom decimal(8) NOT NULL,
-	PRIMARY KEY (ncom,npro),
-	FOREIGN KEY (ncom) REFERENCES commande (ncom),
-	FOREIGN KEY (npro) REFERENCES produit (npro)
-);
-
-select * from commande;
-
-
-CREATE TABLE produit
-(
-	npro varchar(15) NOT NULL,
-	libelle varchar(60) NOT NULL,
-	prix decimal(6) NOT NULL,
-	qstock decimal(8) NOT NULL,
-	PRIMARY KEY (npro)
-);
-
-select * from produit
-
-create index clinom on client(nom);
-
-drop index clinom;
-drop table client,commande,produit,detail;
 
 CREATE TABLE artistes
 (
@@ -137,3 +87,73 @@ insert into artistes values('aznavour','chanson','france');
 
 select * from artistes;
 
+drop table albums;
+CREATE TABLE albums
+(
+	titre varchar(255) NOT NULL,
+	annee interval year default '2004' check(annee>'1900' and annee>'2100') NOT NULL,
+	artiste_nom varchar(60) NOT NULL,
+    constraint fk_artists 
+    	foreign key (artiste_nom) 
+	    REFERENCES artistes (nom),
+	PRIMARY KEY (titre)
+);
+
+select * from albums;
+
+insert into albums values('True Blue','1986','madonna');
+insert into albums values('La mamma','1963','aznavour');
+
+select a1.nom,a2.titre from artistes a1 , albums a2 where a2.artiste_nom = a1.nom
+
+
+----
+
+drop table chansons;
+CREATE TABLE chansons
+(
+	titre varchar(255) NOT NULL,
+	album varchar(255) NOT NULL,
+	numero smallint,
+	duree interval second not null,
+    constraint fk_album 
+    	foreign key (album) 
+	    REFERENCES albums (titre),
+	PRIMARY KEY (titre),
+	unique(album,numero)
+);
+
+
+--delete from chansons where titre = 'Jimmy Jimmy';
+insert into chansons values('Je t''attends','La mamma','3','187');
+insert into chansons values('Les aventuriers','La mamma','5','155');
+insert into chansons values('Jimmy Jimmy','True Blue','8','235');
+insert into chansons values('La Isla Bonita','True Blue','7','242');
+
+select * from chansons;
+
+select a1.nom,a2.titre,c1.titre 
+from artistes a1 , albums a2,chansons c1 
+where a2.artiste_nom = a1.nom and c1.album = a2.titre;
+
+ALTER TABLE chansons ADD COLUMN artiste varchar(60);
+ALTER TABLE chansons
+	ALTER COLUMN numero SET NOT NULL;
+ALTER TABLE artistes ADD CONSTRAINT ganre_limit CHECK (ganre in ('ROCK','Hard Rock', 'Jazz','chanson','pop')); 
+
+
+ALTER TABLE chansons
+	ALTER COLUMN artiste TYPE varchar(60);
+ALTER TABLE chansons ADD constraint fk_artiste foreign key (artiste) REFERENCES artistes (nom);
+
+select * from chansons;
+
+update chansons set artiste = (
+select alb.artiste_nom 
+from albums alb
+where
+chansons.album = alb.titre);
+
+GRANT SELECT ON artistes TO PUBLIC;
+GRANT SELECT,INSERT,UPDATE ON albums TO PUBLIC;
+GRANT ALL PRIVILEGES ON chansons TO PUBLIC;
