@@ -84,3 +84,49 @@ BEGIN
 	CLOSE curs_tables;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE yk_change_column_types(in_data_struct_table text)
+AS $$
+DECLARE
+table_name TEXT;
+column_name TEXT;
+curs_tables_req TEXT;
+curs_columns_req TEXT;
+alter_req TEXT;
+
+curs_tables refcursor;
+curs_columns refcursor;
+BEGIN
+	curs_tables_req := format(E'select distinct table_name from %s where table_name = ''application_test'';' ,in_data_struct_table);
+
+	OPEN curs_tables FOR EXECUTE(curs_tables_req); 
+	LOOP 
+	   	FETCH curs_tables INTO table_name;
+	    EXIT WHEN NOT FOUND;
+
+		curs_columns_req := format(E'select column_name from %s where table_name = %L;',in_data_struct_table,table_name);
+	
+		OPEN curs_columns FOR EXECUTE(curs_columns_req); 
+		LOOP 
+		   	FETCH curs_columns INTO column_name;
+		    EXIT WHEN NOT FOUND;
+			BEGIN
+				alter_req := format('ALTER TABLE %s 
+								 	 	ALTER COLUMN %s TYPE NUMERIC USING %s::NUMERIC;'
+							,table_name,column_name,column_name); 
+				RAISE NOTICE 'Conversion of %.% ...',table_name,column_name;
+				EXECUTE alter_req;
+			EXCEPTION 
+				WHEN invalid_text_representation THEN
+					RAISE NOTICE 'Caught Exception: invalid_text_representation. Column %.% stays TEXT',table_name,column_name;				
+				WHEN OTHERS THEN
+			    	raise notice 'Caught exception % %', SQLERRM, SQLSTATE;
+			END;
+		END LOOP;
+	
+		CLOSE curs_columns;
+	END LOOP;
+
+	CLOSE curs_tables;
+END;
+$$ LANGUAGE plpgsql;

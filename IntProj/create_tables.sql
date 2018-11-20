@@ -84,3 +84,5 @@ COMMIT;
 CALL yk_create_tables('yk_data_struct');
 
 CALL yk_fill_tables('yk_data_struct','/home/jovyan/ecam_ds/data/input/');
+
+--CALL yk_change_column_types('yk_data_struct');
