@@ -1,3 +1,4 @@
 *.csv
 notes
 *.data
+docker_mysql/
