@@ -33,7 +33,7 @@ BEGIN
 	LOOP 
 	   	FETCH cur INTO name_to_drop;
 	    EXIT WHEN NOT FOUND;
-	   	EXECUTE format('DROP TABLE IF EXISTS %s ;', name_to_drop);	  		
+	   	EXECUTE format('DROP TABLE IF EXISTS %s CASCADE;', name_to_drop);	  		
 	END LOOP;
 	CLOSE cur;
 
