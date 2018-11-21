@@ -128,4 +128,59 @@ $$ LANGUAGE plpgsql;
 SELECT table_name,column_name,data_type
 FROM information_schema.columns
 WHERE table_schema = 'public'
-  AND table_name   = 'application_train';
+  AND table_name   = 'application_test';
+
+--
+select f.titre 
+	from acteur a
+		inner join joue j on a.code = j.codeacteur
+		inner join film f on f.code = j.codefilm
+--		join realis r on r.code = f.realis
+	where a.nom = 'Di Caprio'
+	
+--
+select a.prenom,a.nom 
+	from film f
+		inner join joue j on j.codefilm = f.code
+		inner join acteur a on a.code = j.codeacteur
+	where f.titre = 'La nuit americaine'
+
+----
+
+--	if application_test then select column where column_name <> 'target' 
+	SELECT case 
+		when table_name = 'application_test' and column_name <> 'target' then column_name
+		when table_name <> 'application_test' then column_name
+		end
+	 FROM information_schema.columns
+	WHERE table_schema = 'public'
+	  AND table_name   = 'application_test'; 
+	--  and (table_name='application_train' and column_name <>'target');
+
+--select * from yk_data_struct;
+select count(1) from (
+select * from application_test
+union all
+select * from application_train
+	) a;
+
+create table if not exists application (
+select * from application_test
+union all
+select * from application_train
+);
+
+SELECT column_name,ordinal_position
+  FROM information_schema.columns 
+ WHERE table_schema='public' 
+   and table_name = 'application_test';-- and column_name <>'target';
+
+SELECT column_name,ordinal_position
+  FROM information_schema.columns 
+ WHERE table_schema='public' 
+   and table_name = 'application_train';-- and column_name <>'target';
+  	
+	
+	
+	
+	
