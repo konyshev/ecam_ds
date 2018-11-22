@@ -5,6 +5,99 @@
  *
  */
 
+create or replace function MAX_SMALLINT() returns smallint immutable language sql as '
+  select 32767::smallint;
+';
+
+create or replace function MIN_SMALLINT() returns smallint immutable language sql as '
+  select -max_smallint()::smallint;
+';
+
+create or replace function MAX_INT() returns integer immutable language sql as '
+  select 2147483647::integer;
+';
+
+create or replace function MIN_INT() returns integer immutable language sql as '
+  select -max_int()::integer;
+';
+
+create or replace function MAX_BIGINT() returns bigint immutable language sql as '
+  select 9223372036854775807::bigint;
+';
+
+create or replace function MIN_BIGINT() returns bigint immutable language sql as '
+  select -max_bigint()::bigint;
+';
+
+create or replace function MAX_REAL() returns real immutable language sql as '
+  select 1E+37::real;
+';
+
+create or replace function MIN_REAL() returns real immutable language sql as '
+  select -max_real()::real;
+';
+
+CREATE OR REPLACE PROCEDURE yk_convert_col_to_proper_int(in_table text,in_col text)
+AS $$
+DECLARE
+c_min bigint;
+c_max bigint;
+proper_type varchar(100);
+alter_req text;
+BEGIN
+	execute format('select min(%s) from %s',in_col,in_table) into c_min;
+	execute format('select max(%s) from %s',in_col,in_table) into c_max;
+    if c_min > min_smallint() and c_max < max_smallint() then
+        proper_type := 'smallint';
+    elsif c_min > min_int() and c_max < max_int() then
+        proper_type := 'int';
+    else
+        proper_type := 'bigint';
+	end if;
+
+	BEGIN
+		alter_req := format('ALTER TABLE %s 
+						 	 	ALTER COLUMN %s TYPE %s USING %s::%s;'
+					,in_table,in_col,proper_type,in_col,proper_type); 
+		EXECUTE alter_req;
+		RAISE NOTICE '%.% converted to %',in_table,in_col,proper_type;
+	EXCEPTION 
+		WHEN OTHERS THEN
+	    	raise notice 'Caught exception % %', SQLERRM, SQLSTATE;
+	END;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE yk_convert_col_to_proper_float(in_table text,in_col text)
+AS $$
+DECLARE
+c_min numeric;
+c_max numeric;
+proper_type varchar(100);
+alter_req text;
+BEGIN
+	execute format('select min(%s) from %s',in_col,in_table) into c_min;
+	execute format('select max(%s) from %s',in_col,in_table) into c_max;
+    if c_min > min_real() and c_max < max_real() then
+        proper_type := 'real';
+    else
+        proper_type := 'double precision';
+	end if;
+
+	BEGIN
+		alter_req := format('ALTER TABLE %s 
+						 	 	ALTER COLUMN %s TYPE %s USING %s::%s;'
+					,in_table,in_col,proper_type,in_col,proper_type); 
+		EXECUTE alter_req;
+		RAISE NOTICE '%.% converted to %',in_table,in_col,proper_type;
+	EXCEPTION 
+		WHEN OTHERS THEN
+	    	raise notice 'Caught exception % %', SQLERRM, SQLSTATE;
+	END;
+END;
+$$ LANGUAGE plpgsql;
+
+
 /*
 head in windows:
 https://stackoverflow.com/questions/9682024/how-to-do-what-head-tail-more-less-sed-do-in-powershell
@@ -131,6 +224,8 @@ column_name TEXT;
 curs_tables_req TEXT;
 curs_columns_req TEXT;
 alter_req TEXT;
+req TEXT;
+remainder smallint;
 
 curs_tables refcursor;
 curs_columns refcursor;
@@ -152,13 +247,25 @@ BEGIN
 				alter_req := format('ALTER TABLE %s 
 								 	 	ALTER COLUMN %s TYPE NUMERIC USING %s::NUMERIC;'
 							,table_name,column_name,column_name); 
-				RAISE NOTICE 'Conversion of %.% ...',table_name,column_name;
+				RAISE NOTICE 'Conversion of %.% to numeric...',table_name,column_name;
 				EXECUTE alter_req;
+				-- if type is numeric we continue
+				RAISE NOTICE 'Change to proper number type %.% ...',table_name,column_name;
+				req = format('select max(%s%%1) from %s;',column_name,table_name);
+				execute req into remainder;
+				if remainder>0 then
+					call yk_convert_col_to_proper_float(table_name,column_name);
+				else 
+					call yk_convert_col_to_proper_int(table_name,column_name);
+				end if;
+				RAISE NOTICE '-----';
 			EXCEPTION 
 				WHEN invalid_text_representation THEN
-					RAISE NOTICE 'Caught Exception: invalid_text_representation. Column %.% stays TEXT',table_name,column_name;				
+					RAISE NOTICE 'Caught Exception: invalid_text_representation. Column %.% stays TEXT',table_name,column_name;
+			    	raise notice '-----';
 				WHEN OTHERS THEN
 			    	raise notice 'Caught exception % %', SQLERRM, SQLSTATE;
+			    	raise notice '-----';
 			END;
 		END LOOP;
 	
@@ -168,3 +275,4 @@ BEGIN
 	CLOSE curs_tables;
 END;
 $$ LANGUAGE plpgsql;
+

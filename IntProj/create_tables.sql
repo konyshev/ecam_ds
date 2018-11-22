@@ -14,6 +14,7 @@
  * 6. without order by id columns were created in wrong order
  * 7. impossible to create forign key in bureau because of absence of id in application_test
  * 8. join train and test for simplicity treatment 
+ * 9. finctions max_smallint
  * */
 
 /* create initial table with structure of tables */
@@ -104,14 +105,6 @@ create table if not exists application as (
 
 drop table if exists application_test,application_train;
 
---select count(*) from application_test;
---select column_name from yk_data_struct where table_name = 'previous_application' order by id;
---select * from previous_application limit 5;--where sk_id_prev=55075.5; 
-
-ALTER TABLE application ADD PRIMARY KEY (SK_ID_CURR);
-ALTER TABLE bureau ADD PRIMARY KEY (SK_BUREAU_ID);
-ALTER TABLE previous_application ADD PRIMARY KEY (SK_ID_PREV);
-ALTER TABLE bureau ADD constraint fk_sk_id_curr foreign key (sk_id_curr) REFERENCES application (sk_id_curr);
 
 
 /*
@@ -122,6 +115,11 @@ select b.sk_id_curr
   left outer join application a on a.sk_id_curr=b.sk_id_curr
  where a is null
  );
+
+ALTER TABLE application ADD PRIMARY KEY (SK_ID_CURR);
+ALTER TABLE bureau ADD PRIMARY KEY (SK_BUREAU_ID);
+ALTER TABLE previous_application ADD PRIMARY KEY (SK_ID_PREV);
+ALTER TABLE bureau ADD constraint fk_sk_id_curr foreign key (sk_id_curr) REFERENCES application (sk_id_curr);
 
 */
 
