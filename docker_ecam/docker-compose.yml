@@ -1,16 +1,16 @@
 version: '3.5'
 services:
-  ecam_db:
+  db:
     build:
       context: .
       dockerfile: Dockerfile
     image: postgres
-    restart: always
     volumes:
       - ecam_db_pgdata:/var/lib/postgresql/data
       - ~/Coding/repos/bitbucket/competitions/projHomeCredit/input:/home/jovyan/ecam_ds/data/input
       - ~/Coding/repos/github/konyshev/ecam_ds:/home/jovyan/ecam_ds
     ports: 
       - "5432:5432"
+    container_name: container_ecam_db
 volumes:
   ecam_db_pgdata:

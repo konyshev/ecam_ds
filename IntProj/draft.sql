@@ -87,6 +87,9 @@ call yk_change_column_types('yk_data_struct');
 SELECT table_name,column_name,data_type
 FROM information_schema.columns
 WHERE table_schema = 'public'
-  AND table_name   = 'application_test';
+  AND table_name   = 'application';
 
+ 
+ select min(target) from application; --target is bigint ????
+ select null>min_smallint();
  select min(basementarea_avg)<-max_real() from application_test;
