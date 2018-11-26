@@ -38,7 +38,7 @@ COMMIT;
 
 CALL yk_change_column_types('yk_data_struct');
 
-/*
+
 delete from bureau 
 where sk_id_curr in (
 select b.sk_id_curr 
@@ -46,16 +46,14 @@ select b.sk_id_curr
   left outer join application a on a.sk_id_curr=b.sk_id_curr
  where a is null
  );
+COMMIT;
 
-ALTER TABLE application ADD PRIMARY KEY (SK_ID_CURR);
-ALTER TABLE bureau ADD PRIMARY KEY (SK_BUREAU_ID);
-ALTER TABLE previous_application ADD PRIMARY KEY (SK_ID_PREV);
+ALTER TABLE application ADD PRIMARY KEY (sk_id_curr);
+ALTER TABLE bureau ADD PRIMARY KEY (sk_id_bureau);
+ALTER TABLE previous_application ADD PRIMARY KEY (sk_id_prev);
 ALTER TABLE bureau ADD constraint fk_sk_id_curr foreign key (sk_id_curr) REFERENCES application (sk_id_curr);
 
-*/
-
-
-
+COMMIT;
 
 
 
