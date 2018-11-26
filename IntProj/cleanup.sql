@@ -36,7 +36,6 @@ BEGIN
 	   	EXECUTE format('DROP TABLE IF EXISTS %s CASCADE;', name_to_drop);	  		
 	END LOOP;
 	CLOSE cur;
-
 END;
 $$ LANGUAGE plpgsql;
 

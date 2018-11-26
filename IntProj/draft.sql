@@ -180,14 +180,9 @@ select * from yk_tmp_cols;
 
 SELECT table_name
   			  FROM information_schema.tables 
-			 WHERE table_schema='public'
+			 WHERE table_schema='public';
 
-DROP TABLE public."POS_CASH_balance";
-;			 
-			 
-SELECT string_agg(column_name, ',')
-  	  			  		  FROM information_schema.columns 
-			 			 WHERE table_schema='public' 
-			   			   and table_name = 'credit_card_balance'
+select * from yk_tmp_tables;
+			
 
-			   			   select * from credit_card_balance;
+select * from yk_tmp_tables;

@@ -119,24 +119,6 @@ tmp_str text;
 BEGIN
 	RAISE NOTICE 'Removing all data from table: % ...',in_target_table;	
 	EXECUTE format('DELETE FROM %s;', in_target_table);
-
-/*
-	IF in_target_table = 'application_test' THEN
-		tmp_str = ' and column_name <>''target'';';
-	ELSE
-		tmp_str = ';';
-	END IF;
-*/
-
---	tmp_str:=';';
-	
---	cmd_str := format(E'SELECT string_agg(column_name, '','')
---  	  			  		  FROM information_schema.columns 
---			 			 WHERE table_schema=''public'' 
---			   			   and table_name = %L%s',lower(in_target_table),tmp_str);
-
---	RAISE NOTICE 'cmd_str = %',cmd_str;
---	EXECUTE cmd_str into var_column_names;
 					
 	RAISE NOTICE 'Copying data to table: % ...',in_target_table;
 
@@ -149,7 +131,6 @@ BEGIN
 							lower(in_target_table),
 							in_csv_path);
 	END IF;
---	RAISE NOTICE 'cmd_str = % ...',cmd_str;	
 	EXECUTE cmd_str;
 	RAISE NOTICE 'Done.';
 END;
@@ -157,64 +138,49 @@ $$ LANGUAGE plpgsql;
 
 
 /* Procedure for creation tables based on initial table with data structure */
-CREATE OR REPLACE PROCEDURE yk_create_tables(in_data_struct_table text)
+CREATE OR REPLACE PROCEDURE yk_create_tables(in_folder text,debug bool)
 AS $$
-DECLARE
-table_name TEXT;
-column_name TEXT;
-curs_tables_req TEXT;
-curs_columns_req TEXT;
+declare
+req text;
+cur_table text;
+full_path text;
 
 curs_tables refcursor;
-curs_columns refcursor;
-BEGIN
-	curs_tables_req := format(E'select distinct table_name from %s',in_data_struct_table);
 
-	OPEN curs_tables FOR EXECUTE(curs_tables_req); 
+begin
+	CREATE TABLE IF NOT EXISTS yk_data_struct(table_name text);	
+ 
+	req := format(E'COPY yk_data_struct FROM PROGRAM \'ls -1 %I | sed \"s/.csv//\" \' DELIMITER \',\';', 
+					in_folder);
+	EXECUTE req;
+
+	req := format(E'select distinct table_name from yk_data_struct');
+	OPEN curs_tables FOR EXECUTE(req); 
 	LOOP 
-	   	FETCH curs_tables INTO table_name;
+	   	FETCH curs_tables INTO cur_table;
 	    EXIT WHEN NOT FOUND;
-		EXECUTE format('CREATE TABLE IF NOT EXISTS %s()', table_name);	  
+	   	
+	    -- Save column names to tmp table
+		CREATE TEMP TABLE IF NOT EXISTS yk_tmp_cols(cols text) ON COMMIT DROP;
+		full_path := format(E'%s%s.csv',in_folder,cur_table);
+	    req := format(E'COPY yk_tmp_cols FROM PROGRAM \'head -n1 %I\';', full_path);
+	    EXECUTE req;
+	   
+		-- Tables creation
+		SELECT format('CREATE TABLE %I(',lower(cur_table))
+				|| string_agg(quote_ident(REPLACE (lower(col),' ','')) || ' text', ',')
+			    || ')' into req
+			  FROM  (SELECT cols FROM yk_tmp_cols LIMIT 1) t
+		       		, unnest(string_to_array(t.cols, ',')) col;
 
-		curs_columns_req := format(E'select column_name from %s where table_name = %L order by id',in_data_struct_table,table_name);
-	
-		OPEN curs_columns FOR EXECUTE(curs_columns_req); 
-		LOOP 
-		   	FETCH curs_columns INTO column_name;
-		    EXIT WHEN NOT FOUND;
-			EXECUTE format('ALTER TABLE %s ADD COLUMN %s text;', table_name,column_name);	  		
-		END LOOP;
-	
-		CLOSE curs_columns;
-		RAISE NOTICE 'Created table %',table_name;
+		EXECUTE req;	
+		-- Import data		
+		CALL yk_csv_to_table(cur_table,full_path,debug);
+		--Cleanup
+		DELETE FROM yk_tmp_cols;
 	END LOOP;
-
 	CLOSE curs_tables;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE PROCEDURE yk_fill_tables(in_data_struct_table text,in_path_prefix text,debug bool)
-AS $$
-DECLARE
-table_name TEXT;
-full_path TEXT;
-curs_tables_req TEXT;
-
-curs_tables refcursor;
-BEGIN
-	curs_tables_req := format(E'select distinct table_name from %s',in_data_struct_table);
-
-	OPEN curs_tables FOR EXECUTE(curs_tables_req); 
-	LOOP 
-	   	FETCH curs_tables INTO table_name;
-	    EXIT WHEN NOT FOUND;
-		RAISE NOTICE 'Table to fill %',table_name;
-		full_path := format(E'%s%s.csv',in_path_prefix,table_name);
-		CALL yk_csv_to_table(table_name,full_path,debug);
-	END LOOP;
-
-	CLOSE curs_tables;
-END;
+end;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE PROCEDURE yk_change_column_types(in_data_struct_table text)
@@ -238,7 +204,11 @@ BEGIN
 	   	FETCH curs_tables INTO table_name;
 	    EXIT WHEN NOT FOUND;
 
-		curs_columns_req := format(E'select column_name from %s where table_name = %L;',in_data_struct_table,table_name);
+		curs_columns_req := format(E'SELECT column_name 
+									 FROM information_schema.columns 
+									 WHERE table_schema = ''public'' 
+									   and table_name = %L;'
+							,table_name);
 	
 		OPEN curs_columns FOR EXECUTE(curs_columns_req); 
 		LOOP 

@@ -18,95 +18,25 @@
  * 10. target is bigint if null in column -> solution: change data load schema 
  * */
 
-/* create initial table with structure of tables */
-CREATE TABLE IF NOT EXISTS yk_data_struct
-(
-id SERIAL PRIMARY KEY,
-table_name TEXT,
-column_name TEXT,
-column_description TEXT,
-special TEXT
-);
-
-/* fill the table */
-CALL yk_csv_to_table('yk_data_struct',
-					 '/home/jovyan/ecam_ds/data/input/HomeCredit_columns_description.csv',false);
-			
---CALL yk_csv_to_table('application_test',
---					 '/home/jovyan/ecam_ds/data/input/HomeCredit_columns_description.csv',false);
-
-					
---select * from yk_data_struct;
-					
-/* Rename 'application_{train|test}.csv' case */
-update yk_data_struct
-   set
-      table_name = REPLACE (
-      table_name,
-      'application_{train|test}.csv',
-      'application_train.csv'
-      )
- where table_name = 'application_{train|test}.csv';
-COMMIT;
-
-/* check if case is fixed */
---select distinct table_name 
---  from yk_data_struct 
--- where table_name ~ '^appl';
-
-/* remove .csv from table_name and spaces from column_name */
-update yk_data_struct
-   set
-      table_name = REPLACE (
-         table_name,
-         '.csv',
-         ''
-      ),
-      column_name = REPLACE (
-         column_name,
-         ' ',
-         ''
-      )
-;
-COMMIT;
-
-/* column does not exists in previous_application.csv */
-delete from yk_data_struct 
- where column_name = 'NFLAG_MICRO_CASH' 
-   and table_name = 'previous_application';
-COMMIT;
-  
-/* setup correct sequence number */
-select  setval('yk_data_struct_id_seq',  (select max(id) from yk_data_struct));
-
-/* add records for APPLICATION_TEST table */
-insert into yk_data_struct 
-	select nextval('yk_data_struct_id_seq') as id,
-		   'application_test' as table_name,
-		   column_name,
-		   column_description,
-		   special
-	from yk_data_struct 
-   where table_name = 'application_train'
-	order by yk_data_struct.id;
-COMMIT;
-
 --Creation of tables based on data structure table 
-CALL yk_create_tables('yk_data_struct');
+CALL yk_create_tables('/home/jovyan/ecam_ds/data/input/',True);
 
-CALL yk_fill_tables('yk_data_struct','/home/jovyan/ecam_ds/data/input/',True);
-
-CALL yk_change_column_types('yk_data_struct');
-
+ALTER TABLE application_test ADD COLUMN target text;
 create table if not exists application as (
 	select * from application_test
 	union all
 	select * from application_train
 );
+DROP TABLE application_test,application_train;
 
-drop table if exists application_test,application_train;
+UPDATE yk_data_struct 
+	SET table_name = 'application' 
+  WHERE table_name = 'application_test';
+ 
+DELETE FROM yk_data_struct where table_name = 'application_train';
+COMMIT;
 
-
+CALL yk_change_column_types('yk_data_struct');
 
 /*
 delete from bureau 
