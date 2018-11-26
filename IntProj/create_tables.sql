@@ -15,6 +15,7 @@
  * 7. impossible to create forign key in bureau because of absence of id in application_test
  * 8. join train and test for simplicity treatment 
  * 9. finctions max_smallint
+ * 10. target is bigint if null in column -> solution: change data load schema 
  * */
 
 /* create initial table with structure of tables */

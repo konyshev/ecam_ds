@@ -120,32 +120,33 @@ BEGIN
 	RAISE NOTICE 'Removing all data from table: % ...',in_target_table;	
 	EXECUTE format('DELETE FROM %s;', in_target_table);
 
+/*
 	IF in_target_table = 'application_test' THEN
 		tmp_str = ' and column_name <>''target'';';
 	ELSE
 		tmp_str = ';';
 	END IF;
+*/
 
+--	tmp_str:=';';
+	
+--	cmd_str := format(E'SELECT string_agg(column_name, '','')
+--  	  			  		  FROM information_schema.columns 
+--			 			 WHERE table_schema=''public'' 
+--			   			   and table_name = %L%s',lower(in_target_table),tmp_str);
 
-	cmd_str := format(E'SELECT string_agg(column_name, '','')
-  	  			  		  FROM information_schema.columns 
-			 			 WHERE table_schema=''public'' 
-			   			   and table_name = %L%s',lower(in_target_table),tmp_str);
-
-	RAISE NOTICE 'cmd_str = %',cmd_str;
-	EXECUTE cmd_str into var_column_names;
+--	RAISE NOTICE 'cmd_str = %',cmd_str;
+--	EXECUTE cmd_str into var_column_names;
 					
 	RAISE NOTICE 'Copying data to table: % ...',in_target_table;
 
 	IF debug=true THEN
-		cmd_str := format(E'copy %s(%s) from PROGRAM \'head -n1000 %I\' DELIMITER \',\' CSV HEADER;',
+		cmd_str := format(E'copy %s from PROGRAM \'head -n1000 %I\' DELIMITER \',\' CSV HEADER;',
 							lower(in_target_table), 
-							var_column_names,
 							in_csv_path);		
 	ELSE
-		cmd_str := format(E'copy %s(%s) from %L DELIMITER \',\' CSV HEADER;',
+		cmd_str := format(E'copy %s from %L DELIMITER \',\' CSV HEADER;',
 							lower(in_target_table),
-							var_column_names,
 							in_csv_path);
 	END IF;
 --	RAISE NOTICE 'cmd_str = % ...',cmd_str;	

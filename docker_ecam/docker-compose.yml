@@ -7,8 +7,7 @@ services:
     image: postgres
     volumes:
       - ecam_db_pgdata:/var/lib/postgresql/data
-      - ~/Coding/repos/bitbucket/competitions/projHomeCredit/input:/home/jovyan/ecam_ds/data/input
-      - ~/Coding/repos/github/konyshev/ecam_ds:/home/jovyan/ecam_ds
+      - ~/Downloads/homeCreditData/to_db:/home/jovyan/ecam_ds/data/input
     ports: 
       - "5432:5432"
     container_name: container_ecam_db

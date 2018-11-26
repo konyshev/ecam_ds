@@ -27,7 +27,7 @@ BEGIN
 
 	req := 'SELECT table_name
   			  FROM information_schema.tables 
-			 WHERE table_schema=''public'' and table_name not in (''albums'',''artistes'',''chansons'')';
+			 WHERE table_schema=''public''';
 
 	OPEN cur FOR EXECUTE(req); 
 	LOOP 
