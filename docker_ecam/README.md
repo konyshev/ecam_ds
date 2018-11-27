@@ -24,3 +24,5 @@ docker-compose up --build
 
 * Repo owner or admin
 * Other community or team contact
+
+/.dbeaver4/General/.dbeaver-data-sources.xml
