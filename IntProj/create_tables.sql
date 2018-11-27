@@ -137,3 +137,30 @@ ALTER TABLE credit_card_balance ADD constraint fk_sk_id_prev foreign key (sk_id_
 -- transformation of age
 ALTER TABLE application ADD COLUMN age smallint null;
 update application set age = days_birth/(-365);
+
+--dimension date
+create table application_0_25 as select * from application where age between 0 and 25;
+create table application_25_40 as select * from application where age between 25 and 40;
+create table application_40_65 as select * from application where age between 40 and 65;
+create table application_65_inf as select * from application where age > 65;
+
+--indexes
+CREATE UNIQUE INDEX appl_id_curr_idx ON application (sk_id_curr);
+
+CREATE INDEX bur_id_curr_idx ON bureau (sk_id_curr);
+CREATE UNIQUE INDEX bur_id_bureau_idx ON bureau (sk_id_bureau);
+
+CREATE INDEX bur_blnc_id_bureau_idx ON bureau_balance (sk_id_bureau);
+
+CREATE INDEX prev_appl_id_curr_idx ON previous_application (sk_id_curr);
+CREATE UNIQUE INDEX prev_appl_id_prev_idx ON previous_application (sk_id_prev);
+
+CREATE INDEX pos_id_curr_idx ON pos_cash_balance (sk_id_curr);
+CREATE INDEX pos_id_prev_idx ON pos_cash_balance (sk_id_prev);
+
+CREATE INDEX inst_id_curr_idx ON installments_payments (sk_id_curr);
+CREATE INDEX inst_id_prev_idx ON installments_payments (sk_id_prev);
+
+CREATE INDEX card_id_curr_idx ON credit_card_balance (sk_id_curr);
+CREATE INDEX card_id_prev_idx ON credit_card_balance (sk_id_prev);
+

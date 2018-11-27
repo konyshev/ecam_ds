@@ -33,11 +33,13 @@
 
 --------
 
-SELECT table_name,column_name,data_type
+SELECT table_name,count(column_name)--column_name,data_type
 FROM information_schema.columns
 WHERE table_schema = 'public'
-  AND table_name   = 'pos_cash_balance'; --'bureau';
+group by table_name
+  --AND table_name   = 'pos_cash_balance'; --'bureau';
  
+select * from bureau_balance;
 
  
 SELECT * --table_name,column_name,data_type
@@ -87,3 +89,10 @@ from (
 	select cast(DAYS_LAST_PHONE_CHANGE as real)/cast (-365 as real) as change_in_years_ago 
 	from application
 ) t;
+
+select count(1) from application_0_25;
+select count(1) from application_25_40;
+select count(1) from application_40_65;
+select count(1) from application_65_inf;
+
+
