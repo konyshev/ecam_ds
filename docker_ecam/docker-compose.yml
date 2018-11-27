@@ -1,10 +1,7 @@
-version: '3.5'
+version: '2'
 services:
   db:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: postgres
+    image: postgres:latest
     volumes:
       - ecam_db_pgdata:/var/lib/postgresql/data
       - ~/Downloads/homeCreditData/to_db:/home/jovyan/ecam_ds/data/input
