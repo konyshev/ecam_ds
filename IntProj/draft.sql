@@ -1,6 +1,12 @@
 /* connection test */
 --select * from pg_tables;
 
+-- number of lines
+-- wc -l ~/Downloads/homeCreditData/to_db/*
+--number of columns
+--ls | xargs head -1 | awk 'BEGIN{FS=","};{print NF+1}'
+
+
 /* export */
 --COPY sample_submission TO '/home/jovyan/ecam_ds/data/sample_submission_db.csv' DELIMITER ',' CSV HEADER;
 
@@ -19,9 +25,65 @@
 -- WHERE table_schema='public' 
 --   and table_name = 'application_train';-- and column_name <>'target';
 
+
+--SELECT table_name,pg_size_pretty(pg_total_relation_size(format('%I.%I',table_schema,table_name))) 
+--FROM information_schema.tables
+--WHERE table_schema = 'public'
+-- order by table_name;
+
 --------
 
 SELECT table_name,column_name,data_type
 FROM information_schema.columns
 WHERE table_schema = 'public'
-  AND table_name   = 'bureau';
+  AND table_name   = 'pos_cash_balance'; --'bureau';
+ 
+
+ 
+SELECT * --table_name,column_name,data_type
+FROM information_schema.check_constraints
+WHERE table_schema = 'public';
+
+SELECT t.table_name
+FROM information_schema.tables t
+WHERE t.table_schema = 'public';
+
+
+select 'application' as text ,count(1) from application
+union all
+select 'credit_card_balance' as text ,count(1) from credit_card_balance
+union all
+select 'installments_payments' as text ,count(1) from installments_payments
+union all
+select 'previous_application' as text ,count(1) from previous_application
+union all
+select 'pos_cash_balance' as text ,count(1) from pos_cash_balance
+union all
+select 'bureau' as text ,count(1) from bureau
+union all
+select 'bureau_balance' as text ,count(1) from bureau_balance;
+
+
+select * from previous_application limit 5;
+
+-- transformation of age
+ALTER TABLE application ADD COLUMN age smallint null;
+ALTER TABLE application DROP COLUMN age;
+update application set age = days_birth/(-365);
+
+select days_birth/(-365) as a from application order by a;
+
+select * from application limit 5;
+
+
+--dimension date
+select case
+		when t.change_in_years_ago = 0 then 'no change'
+		when t.change_in_years_ago BETWEEN 0 AND 1 then 'this year'
+		when t.change_in_years_ago > 1 then trunc(change_in_years_ago)||' years ago'
+		else 'no info'
+	   end as "last_phone_change_in_years"
+from (
+	select cast(DAYS_LAST_PHONE_CHANGE as real)/cast (-365 as real) as change_in_years_ago 
+	from application
+) t;
