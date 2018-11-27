@@ -73,7 +73,9 @@ ALTER TABLE application ADD COLUMN age smallint null;
 ALTER TABLE application DROP COLUMN age;
 update application set age = days_birth/(-365);
 
-select days_birth/(-365) as a from application order by a;
+select age as a from application order by a desc;
+
+select days_birth as a from application order by a;
 
 select * from application limit 5;
 
@@ -95,4 +97,7 @@ select count(1) from application_25_40;
 select count(1) from application_40_65;
 select count(1) from application_65_inf;
 
+select cast(DAYS_LAST_PHONE_CHANGE as real)/cast (-365 as real) as change_in_years_ago
 
+
+select * from application;
