@@ -24,87 +24,92 @@
 --Creation of tables based on data structure table 
 CALL yk_create_tables('/home/jovyan/ecam_ds/data/input/',True);
 
-ALTER TABLE application_test ADD COLUMN target text;
-create table if not exists application as (
-	select * from application_test
-	union all
-	select * from application_train
+create table credit_bureau as (
+	select 
+		sk_id_curr as id_person,
+		sk_id_bureau as id_credit_in_bureau,
+		credit_active,
+		amt_credit_sum,
+		credit_type,
+		days_credit,
+		days_credit_enddate
+	from bureau
 );
-DROP TABLE application_test,application_train;
+drop table bureau;
 
-UPDATE yk_data_struct 
-	SET table_name = 'application' 
-  WHERE table_name = 'application_test';
- 
-DELETE FROM yk_data_struct where table_name = 'application_train';
-COMMIT;
+create table paiements as (
+	select 
+		sk_id_prev as id_demande,
+		amt_instalment,
+		amt_payment,
+		num_instalment_number,
+		days_instalment,
+		days_entry_payment
+	from installments_payments
+);
+drop table installments_payments;
+
+create table demande_de_credit as (
+	select 
+	sk_id_curr as id_person,
+	sk_id_prev as id_demande,
+	amt_application,
+	amt_credit,
+	(NOW() - (interval '2000 days') + (random() * (interval '1800 days')))::date as date_de_demande,
+	days_decision,
+	name_contract_status
+    from previous_application
+);
+drop table previous_application;
+
+create table credit_card_balance_mensuel as (
+	select 
+		sk_id_prev as id_demande,
+		amt_balance,
+		amt_credit_limit_actual,
+		amt_drawings_atm_current,
+		cnt_drawings_atm_current
+	  from credit_card_balance
+)
+drop table credit_card_balance;
+
+update yk_data_struct set table_name = 'credit_bureau' where table_name = 'bureau';
+update yk_data_struct set table_name = 'paiements' where table_name = 'installments_payments';
+update yk_data_struct set table_name = 'demande_de_credit' where table_name = 'previous_application';
+update yk_data_struct set table_name = 'credit_card_balance_mensuel' where table_name = 'credit_card_balance';
 
 CALL yk_change_column_types('yk_data_struct');
 
+----
+
+
+
 delete from bureau 
-where sk_id_curr in (
-select b.sk_id_curr 
-  from bureau b
-  left outer join application a on a.sk_id_curr=b.sk_id_curr
- where a is null
- );
+	where id_person in (
+		select b.id_person 
+		  from bureau b
+		  left outer join demande_de_credit d on d.id_person = b.id_person
+		 where d.id_person is null
+	 );
 
-delete from previous_application 
-where sk_id_curr in (
-select p_a.sk_id_curr 
-  from previous_application p_a
-  left outer join application a on a.sk_id_curr=p_a.sk_id_curr
- where a is null
- );
-
-delete from credit_card_balance 
-where sk_id_curr in (
-select c_c_b.sk_id_curr 
-  from credit_card_balance c_c_b
-  left outer join application a on a.sk_id_curr=c_c_b.sk_id_curr
- where a is null
- );
-
-delete from pos_cash_balance 
-where sk_id_curr in (
-select p_c_b.sk_id_curr 
-  from pos_cash_balance p_c_b
-  left outer join application a on a.sk_id_curr=p_c_b.sk_id_curr
- where a is null
- );
-
-delete from installments_payments 
-where sk_id_curr in (
-select i_p.sk_id_curr 
-  from installments_payments i_p
-  left outer join application a on a.sk_id_curr=i_p.sk_id_curr
- where a is null
- );
-
-
-delete from bureau_balance 
-where sk_id_bureau in (
-select b_b.sk_id_bureau 
-  from bureau_balance b_b
-  left outer join bureau b on b_b.sk_id_bureau=b.sk_id_bureau
- where b is null
- );
-
-delete from pos_cash_balance 
-where sk_id_curr in (
-select p_c_b.sk_id_curr 
-  from pos_cash_balance p_c_b
-  left outer join previous_application p_a on p_a.sk_id_prev = p_c_b.sk_id_prev
- where p_a is null
- );
+delete from paiements
+	where id_demande in (
+		select p.id_demande 
+		  from paiements p
+		  left outer join demande_de_credit d on d.id_demande=p.id_demande
+		 where d.id_demande is null
+	 );
 
 delete from credit_card_balance 
-where sk_id_curr in (
-select c_c_b.sk_id_curr 
+where id_person in (
+select c_c_b.id_person 
   from credit_card_balance c_c_b
-  left outer join previous_application p_a on p_a.sk_id_prev = c_c_b.sk_id_prev
- where p_a is null
+  left outer join demande_de_credit d on d.id_demande=c_c_b.id_person
+ where d.id_demande is null
  );
+
+ 
+ ---num_instalment_number + id_demande ---> unique
 
 
 --primary keys

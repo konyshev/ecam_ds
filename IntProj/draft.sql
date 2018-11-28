@@ -54,6 +54,11 @@ SELECT t.table_name
 FROM information_schema.tables t
 WHERE t.table_schema = 'public';
 
+select column_name
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND table_name   = 'credit_card_balance';
+
 
 select 'application' as text ,count(1) from application
 union all
@@ -107,3 +112,22 @@ select cast(DAYS_LAST_PHONE_CHANGE as real)/cast (-365 as real) as change_in_yea
 select * from application;
 
 SELECT * FROM yk_data_struct;
+
+--how many payment by every previous credit
+select appl.sk_id_curr,prev_appl.sk_id_prev,count(inst_pmt.*) payments_count,max(inst_pmt.DAYS_INSTALMENT-inst_pmt.DAYS_ENTRY_PAYMENT) as max_days_overdue
+  from application appl
+  inner join previous_application prev_appl on prev_appl.sk_id_curr = appl.sk_id_curr
+  inner join installments_payments inst_pmt on inst_pmt.sk_id_curr = appl.sk_id_curr and inst_pmt.sk_id_prev = prev_appl.sk_id_prev
+group by appl.sk_id_curr,prev_appl.sk_id_prev
+order by 3 desc;
+  
+--
+
+
+select count(*) from installments_payments;-- limit 5;
+select DAYS_INSTALMENT,DAYS_ENTRY_PAYMENT from installments_payments limit 5;
+
+
+select id_demande,count(AMT_BALANCE) from credit_card_balance group by id_demande;
+
+select id_demande,count(1) from paiements  group by id_demande;

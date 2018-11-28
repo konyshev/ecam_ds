@@ -60,7 +60,7 @@ BEGIN
 						 	 	ALTER COLUMN %s TYPE %s USING %s::%s;'
 					,in_table,in_col,proper_type,in_col,proper_type); 
 		EXECUTE alter_req;
-		RAISE NOTICE '%.% converted to %',in_table,in_col,proper_type;
+--		RAISE NOTICE '%.% converted to %',in_table,in_col,proper_type;
 	EXCEPTION 
 		WHEN OTHERS THEN
 	    	raise notice 'Caught exception % %', SQLERRM, SQLSTATE;
@@ -89,7 +89,7 @@ BEGIN
 						 	 	ALTER COLUMN %s TYPE %s USING %s::%s;'
 					,in_table,in_col,proper_type,in_col,proper_type); 
 		EXECUTE alter_req;
-		RAISE NOTICE '%.% converted to %',in_table,in_col,proper_type;
+--		RAISE NOTICE '%.% converted to %',in_table,in_col,proper_type;
 	EXCEPTION 
 		WHEN OTHERS THEN
 	    	raise notice 'Caught exception % %', SQLERRM, SQLSTATE;
@@ -117,13 +117,13 @@ var_column_names text;
 cmd_str text;
 tmp_str text;
 BEGIN
-	RAISE NOTICE 'Removing all data from table: % ...',in_target_table;	
+--	RAISE NOTICE 'Removing all data from table: % ...',in_target_table;	
 	EXECUTE format('DELETE FROM %s;', in_target_table);
 					
 	RAISE NOTICE 'Copying data to table: % ...',in_target_table;
 
 	IF debug=true THEN
-		cmd_str := format(E'copy %s from PROGRAM \'head -n10000 %I\' DELIMITER \',\' CSV HEADER;',
+		cmd_str := format(E'copy %s from PROGRAM \'head -n100000 %I\' DELIMITER \',\' CSV HEADER;',
 							lower(in_target_table), 
 							in_csv_path);		
 	ELSE
@@ -218,10 +218,10 @@ BEGIN
 				alter_req := format('ALTER TABLE %s 
 								 	 	ALTER COLUMN %s TYPE NUMERIC USING %s::NUMERIC;'
 							,table_name,column_name,column_name); 
-				RAISE NOTICE 'Conversion of %.% to numeric...',table_name,column_name;
+--				RAISE NOTICE 'Conversion of %.% to numeric...',table_name,column_name;
 				EXECUTE alter_req;
 				-- if type is numeric we continue
-				RAISE NOTICE 'Change to proper number type %.% ...',table_name,column_name;
+--				RAISE NOTICE 'Change to proper number type %.% ...',table_name,column_name;
 				req = format('select max(%s%%1) from %s;',column_name,table_name);
 				execute req into remainder;
 				if remainder>0 then
@@ -229,14 +229,14 @@ BEGIN
 				else 
 					call yk_convert_col_to_proper_int(table_name,column_name);
 				end if;
-				RAISE NOTICE '-----';
+--				RAISE NOTICE '-----';
 			EXCEPTION 
 				WHEN invalid_text_representation THEN
-					RAISE NOTICE 'Caught Exception: invalid_text_representation. Column %.% stays TEXT',table_name,column_name;
-			    	raise notice '-----';
+--					RAISE NOTICE 'Caught Exception: invalid_text_representation. Column %.% stays TEXT',table_name,column_name;
+--			    	raise notice '-----';
 				WHEN OTHERS THEN
 			    	raise notice 'Caught exception % %', SQLERRM, SQLSTATE;
-			    	raise notice '-----';
+--			    	raise notice '-----';
 			END;
 		END LOOP;
 	
