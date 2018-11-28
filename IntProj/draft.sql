@@ -41,10 +41,14 @@ group by table_name
  
 select * from bureau_balance;
 
- 
+SELECT table_name,count(column_name)--column_name,data_type
+FROM information_schema.columns
+WHERE table_schema = 'public'
+group by table_name ;
+
 SELECT * --table_name,column_name,data_type
 FROM information_schema.check_constraints
-WHERE table_schema = 'public';
+WHERE constraint_schema = 'public';
 
 SELECT t.table_name
 FROM information_schema.tables t
@@ -101,3 +105,5 @@ select cast(DAYS_LAST_PHONE_CHANGE as real)/cast (-365 as real) as change_in_yea
 
 
 select * from application;
+
+SELECT * FROM yk_data_struct;
