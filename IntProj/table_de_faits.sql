@@ -24,18 +24,31 @@
 --Creation of tables based on data structure table 
 CALL yk_create_tables('/home/jovyan/ecam_ds/data/input/',True);
 
-create table credit_bureau as (
-	select 
-		sk_id_curr as id_person,
-		sk_id_bureau as id_credit_in_bureau,
-		credit_active,
-		amt_credit_sum,
-		credit_type,
-		days_credit,
-		days_credit_enddate
-	from bureau
+ALTER TABLE application_train DROP COLUMN target;
+create table if not exists application as (
+	select * from application_test
+	union all
+	select * from application_train
 );
-drop table bureau;
+DROP TABLE application_test,application_train;
+
+UPDATE yk_data_struct 
+	SET table_name = 'application' 
+  WHERE table_name = 'application_test';
+DELETE FROM yk_data_struct where table_name = 'application_train';
+
+
+ALTER TABLE application ADD COLUMN birthday date null;
+
+select name_education_type, count(1) from client group by name_education_type;
+
+create table client as (
+	select code_gender,
+		   NOW() - (interval '100 days') + (interval '1 day'*days_birth::smallint) as birthday,
+		   amt_income_total,
+		   name_education_type
+	  from application
+)
 
 create table paiements as (
 	select 
