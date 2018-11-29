@@ -32,152 +32,97 @@ create table if not exists application as (
 );
 DROP TABLE application_test,application_train;
 
-UPDATE yk_data_struct 
-	SET table_name = 'application' 
-  WHERE table_name = 'application_test';
-DELETE FROM yk_data_struct where table_name = 'application_train';
-
-
-ALTER TABLE application ADD COLUMN birthday date null;
-
-select name_education_type, count(1) from client group by name_education_type;
-
 create table client as (
-	select code_gender,
+	select sk_id_curr as id_client,
 		   NOW() - (interval '100 days') + (interval '1 day'*days_birth::smallint) as birthday,
-		   amt_income_total,
-		   name_education_type
+		   code_gender as gender,
+		   name_education_type as education_type
 	  from application
-)
-
-create table paiements as (
-	select 
-		sk_id_prev as id_demande,
-		amt_instalment,
-		amt_payment,
-		num_instalment_number,
-		days_instalment,
-		days_entry_payment
-	from installments_payments
 );
-drop table installments_payments;
+drop table application;
+
+create table credit_types as (
+	select distinct DENSE_RANK() OVER(ORDER BY NAME_CONTRACT_TYPE) as id_type
+	     , NAME_CONTRACT_TYPE as nom_de_type
+    from previous_application
+);
+
+create table achat_types as (
+	select distinct DENSE_RANK() OVER(ORDER BY name_goods_category) as id_type
+	     , name_goods_category as nom_de_type
+    from previous_application
+);
+
+create table calendar as (
+	select 
+		d.date as date,
+		extract(year from d.date)::smallint as year,
+		extract(month from d.date)::smallint as month,
+		extract(week from d.date)::smallint as week_of_year,
+		extract(dow from d.date)::smallint as weekday,
+		extract(day from d.date)::smallint as day_of_month
+	from (
+		SELECT date_trunc('day', dd):: date as date
+		FROM generate_series
+		        ( '2010-01-01'::timestamp 
+		        , NOW() + (interval '1000 days')
+		        , '1 day'::interval) dd
+		)d
+);
 
 create table demande_de_credit as (
 	select 
-	sk_id_curr as id_person,
-	sk_id_prev as id_demande,
-	amt_application,
-	amt_credit,
+	p.sk_id_prev as id_demande,
+	p.sk_id_curr as id_client,
 	(NOW() - (interval '2000 days') + (random() * (interval '1800 days')))::date as date_de_demande,
-	days_decision,
-	name_contract_status
-    from previous_application
+	c.id_type  as type_de_credit,
+	a.id_type as type_de_achat,
+	p.amt_goods_price as prix_de_achat,
+	p.amt_application as montant_demande,
+	p.amt_credit montant_credit,
+	p.name_type_suite as type_accompagne, 
+	p.name_contract_status as status
+    from previous_application p
+    left join credit_types c on c.nom_de_type = p.name_contract_type
+    left join achat_types a on a.nom_de_type = p.name_goods_category
 );
 drop table previous_application;
 
-create table credit_card_balance_mensuel as (
-	select 
-		sk_id_prev as id_demande,
-		amt_balance,
-		amt_credit_limit_actual,
-		amt_drawings_atm_current,
-		cnt_drawings_atm_current
-	  from credit_card_balance
-)
-drop table credit_card_balance;
-
-update yk_data_struct set table_name = 'credit_bureau' where table_name = 'bureau';
-update yk_data_struct set table_name = 'paiements' where table_name = 'installments_payments';
-update yk_data_struct set table_name = 'demande_de_credit' where table_name = 'previous_application';
-update yk_data_struct set table_name = 'credit_card_balance_mensuel' where table_name = 'credit_card_balance';
+insert into yk_data_struct values ('calendar');
+insert into yk_data_struct values ('credit_types');
+insert into yk_data_struct values ('demande_de_credit');
+insert into yk_data_struct values ('client');
+insert into yk_data_struct values ('achat_types');
 
 CALL yk_change_column_types('yk_data_struct');
 
+
 ----
 
-
-
-delete from bureau 
-	where id_person in (
-		select b.id_person 
-		  from bureau b
-		  left outer join demande_de_credit d on d.id_person = b.id_person
-		 where d.id_person is null
+delete from demande_de_credit 
+	where id_client in (
+		select d.id_client 
+		  from demande_de_credit d
+		  left outer join client c on d.id_client = c.id_client
+		 where c.id_client is null
 	 );
-
-delete from paiements
-	where id_demande in (
-		select p.id_demande 
-		  from paiements p
-		  left outer join demande_de_credit d on d.id_demande=p.id_demande
-		 where d.id_demande is null
-	 );
-
-delete from credit_card_balance 
-where id_person in (
-select c_c_b.id_person 
-  from credit_card_balance c_c_b
-  left outer join demande_de_credit d on d.id_demande=c_c_b.id_person
- where d.id_demande is null
- );
-
- 
- ---num_instalment_number + id_demande ---> unique
-
 
 --primary keys
-ALTER TABLE application ADD PRIMARY KEY (sk_id_curr);
-ALTER TABLE bureau ADD PRIMARY KEY (sk_id_bureau);
-ALTER TABLE previous_application ADD PRIMARY KEY (sk_id_prev);
-
---forign keys
-ALTER TABLE bureau ADD constraint fk_sk_id_curr foreign key (sk_id_curr) REFERENCES application (sk_id_curr);
-ALTER TABLE pos_cash_balance ADD constraint fk_sk_id_curr foreign key (sk_id_curr) REFERENCES application (sk_id_curr);
-ALTER TABLE previous_application ADD constraint fk_sk_id_curr foreign key (sk_id_curr) REFERENCES application (sk_id_curr);
-ALTER TABLE credit_card_balance ADD constraint fk_sk_id_curr foreign key (sk_id_curr) REFERENCES application (sk_id_curr);
-ALTER TABLE installments_payments ADD constraint fk_sk_id_curr foreign key (sk_id_curr) REFERENCES application (sk_id_curr);
-
-ALTER TABLE bureau_balance ADD constraint fk_sk_id_bureau foreign key (sk_id_bureau) REFERENCES bureau (sk_id_bureau);
-
-ALTER TABLE pos_cash_balance ADD constraint fk_sk_id_prev foreign key (sk_id_prev) REFERENCES previous_application (sk_id_prev);
-ALTER TABLE credit_card_balance ADD constraint fk_sk_id_prev foreign key (sk_id_prev) REFERENCES previous_application (sk_id_prev);
-
--- transformation of age
-ALTER TABLE application ADD COLUMN age smallint null;
-update application set age = days_birth/(-365);
-
---dimension date
-create table application_0_25 as select * from application where age between 0 and 25;
+ALTER TABLE calendar ADD PRIMARY KEY (date);
+ALTER TABLE client ADD PRIMARY KEY (id_client);
+ALTER TABLE credit_types ADD PRIMARY KEY (id_type);
+ALTER TABLE achat_types ADD PRIMARY KEY (id_type);
+ALTER TABLE demande_de_credit ADD PRIMARY KEY (id_demande);
 
 
+--forign keys and constraints
+ALTER TABLE demande_de_credit ADD constraint fk_date_de_demande foreign key (date_de_demande) REFERENCES calendar (date);
+ALTER TABLE demande_de_credit ADD constraint fk_type_de_credit foreign key (type_de_credit) REFERENCES credit_types (id_type);
+ALTER TABLE demande_de_credit ADD constraint fk_type_de_achat foreign key (type_de_achat) REFERENCES achat_types (id_type);
+ALTER TABLE demande_de_credit ADD constraint fk_id_client foreign key (id_client) REFERENCES client (id_client);
 
-
-
-create table application_25_40 as select * from application where age between 25 and 40;
-
-
-
-
-
-create table application_40_65 as select * from application where age between 40 and 65;
-create table application_65_inf as select * from application where age > 65;
 
 --indexes
-CREATE UNIQUE INDEX appl_id_curr_idx ON application (sk_id_curr);
-
-CREATE INDEX bur_id_curr_idx ON bureau (sk_id_curr);
-CREATE UNIQUE INDEX bur_id_bureau_idx ON bureau (sk_id_bureau);
-
-CREATE INDEX bur_blnc_id_bureau_idx ON bureau_balance (sk_id_bureau);
-
-CREATE INDEX prev_appl_id_curr_idx ON previous_application (sk_id_curr);
-CREATE UNIQUE INDEX prev_appl_id_prev_idx ON previous_application (sk_id_prev);
-
-CREATE INDEX pos_id_curr_idx ON pos_cash_balance (sk_id_curr);
-CREATE INDEX pos_id_prev_idx ON pos_cash_balance (sk_id_prev);
-
-CREATE INDEX inst_id_curr_idx ON installments_payments (sk_id_curr);
-
-CREATE INDEX card_id_curr_idx ON credit_card_balance (sk_id_curr);
-CREATE INDEX card_id_prev_idx ON credit_card_balance (sk_id_prev);
-
+CREATE UNIQUE INDEX idx_id_demande ON demande_de_credit (id_demande);
+CREATE INDEX idx_id_client ON demande_de_credit (id_client);
+CREATE UNIQUE INDEX idx_client_id_client ON client (id_client);

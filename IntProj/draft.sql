@@ -141,3 +141,6 @@ select DAYS_INSTALMENT,DAYS_ENTRY_PAYMENT from installments_payments limit 5;
 select id_demande,count(AMT_BALANCE) from credit_card_balance group by id_demande;
 
 select id_demande,count(1) from paiements  group by id_demande;
+
+
+select distinct NAME_TYPE_SUITE from previous_application;
