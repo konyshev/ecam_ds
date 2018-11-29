@@ -246,4 +246,3 @@ BEGIN
 	CLOSE curs_tables;
 END;
 $$ LANGUAGE plpgsql;
-

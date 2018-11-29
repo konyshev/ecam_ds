@@ -22,7 +22,7 @@
  * */
 
 --Creation of tables based on data structure table 
-CALL yk_create_tables('/home/jovyan/ecam_ds/data/input/',True);
+CALL yk_create_tables('/home/jovyan/ecam_ds/data/input/',FALSE);
 
 ALTER TABLE application_train DROP COLUMN target;
 create table if not exists application as (
@@ -126,3 +126,75 @@ ALTER TABLE demande_de_credit ADD constraint fk_id_client foreign key (id_client
 CREATE UNIQUE INDEX idx_id_demande ON demande_de_credit (id_demande);
 CREATE INDEX idx_id_client ON demande_de_credit (id_client);
 CREATE UNIQUE INDEX idx_client_id_client ON client (id_client);
+
+-----
+
+select c.gender
+	,count(d.id_demande) count_of_demande
+	,to_char(avg(d.prix_de_achat),'999999999.99') avg_of_prix
+	,to_char(avg(d.montant_demande-d.montant_credit),'999999999.99') avg_demande_minus_credit
+	,sum(CASE WHEN d.status='Approved' THEN 1 else 0 END) count_of_approved
+	,sum(CASE WHEN d.status='Refused' THEN 1 else 0 END) count_of_refused
+	,sum(CASE WHEN d.status='Canceled' THEN 1 else 0 END) count_of_canceled
+	,sum(CASE WHEN d.status='Unused offer' THEN 1 else 0 END) count_of_unused
+  from demande_de_credit d
+  left join client c on d.id_client = c.id_client
+group by c.gender;
+--------------
+
+
+select t.range as "age when demande range",
+		sum(CASE WHEN d.type_accompagne='Family' THEN 1 else 0 END) count_of_family,
+		sum(CASE WHEN d.type_accompagne='Group of people' THEN 1 else 0 END) count_of_group,
+		sum(CASE WHEN d.type_accompagne='Unaccompanied' THEN 1 else 0 END) count_of_unaccompanied,
+		sum(CASE WHEN d.type_accompagne='Children' THEN 1 else 0 END) count_of_children,
+		sum(CASE WHEN d.type_accompagne='Spouse, partner' THEN 1 else 0 END) count_of_spouse
+from (
+      select a.id_demande,
+      	case 
+      	 when a.age_when_demande > 0 and a.age_when_demande < 25 then '0-25'
+      	 when a.age_when_demande >= 25 and a.age_when_demande < 40 then '25-40'
+      	 when a.age_when_demande >= 40 and a.age_when_demande < 65 then '40-65'
+      	 when a.age_when_demande >= 65 then '65+' end as range
+     from (	select d.id_demande,
+     			   extract(year from age(d.date_de_demande,c.birthday))::smallint as age_when_demande
+			  from demande_de_credit d
+			  left join client c on d.id_client = c.id_client
+		  ) a
+     ) t
+     inner join demande_de_credit d on d.id_demande = t.id_demande
+group by t.range
+order by t.range
+;
+----
+
+with age_range as (
+      select a.id_demande,
+      	case 
+      	 when a.age_when_demande > 0 and a.age_when_demande < 25 then '0-25'
+      	 when a.age_when_demande >= 25 and a.age_when_demande < 40 then '25-40'
+      	 when a.age_when_demande >= 40 and a.age_when_demande < 65 then '40-65'
+      	 when a.age_when_demande >= 65 then '65+' end as range
+     from (	select d.id_demande,
+     			   extract(year from age(d.date_de_demande,c.birthday))::smallint as age_when_demande
+			  from demande_de_credit d
+			  left join client c on d.id_client = c.id_client
+	)a
+)
+select a_t.nom_de_type,
+		sum(CASE WHEN a_r.range='0-25' THEN 1 else 0 END) "0-25",
+		sum(CASE WHEN a_r.range='25-40' THEN 1 else 0 END) "25-40",
+		sum(CASE WHEN a_r.range='40-65' THEN 1 else 0 END) "40-65",
+		sum(CASE WHEN a_r.range='65+' THEN 1 else 0 END) "65+"
+	from age_range a_r
+	inner join demande_de_credit d on d.id_demande = a_r.id_demande
+	inner join achat_types a_t on a_t.id_type = d.type_de_achat
+group by a_t.nom_de_type;
+
+----
+
+select c.year,count(d.id_demande)
+from calendar c
+left join demande_de_credit d on c."date"= d.date_de_demande
+group by c.year
+order by year
