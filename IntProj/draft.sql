@@ -80,9 +80,19 @@ select * from previous_application limit 5;
 -- transformation of age
 ALTER TABLE application ADD COLUMN age smallint null;
 ALTER TABLE application DROP COLUMN age;
-update application set age = days_birth/(-365);
 
-select age as a from application order by a desc;
+ALTER TABLE application ADD COLUMN birthday date null;
+update application set birthday = ;
+ALTER TABLE application ADD COLUMN tmp_birthday text;
+
+select birthday from application;
+
+update application set tmp_birthday = format(E'%s',days_birth::smallint*(-1));
+
+select interval '1 days'*-15;
+
+select tmp_birthday) from application;
+select NOW() - (interval '100 days') + (interval '1 day'*days_birth::smallint) as a from application ;--where birthday is not null;
 
 select days_birth as a from application order by a;
 

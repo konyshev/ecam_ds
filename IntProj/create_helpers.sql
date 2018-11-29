@@ -123,7 +123,7 @@ BEGIN
 	RAISE NOTICE 'Copying data to table: % ...',in_target_table;
 
 	IF debug=true THEN
-		cmd_str := format(E'copy %s from PROGRAM \'head -n100000 %I\' DELIMITER \',\' CSV HEADER;',
+		cmd_str := format(E'copy %s from PROGRAM \'head -n10000 %I\' DELIMITER \',\' CSV HEADER;',
 							lower(in_target_table), 
 							in_csv_path);		
 	ELSE
