@@ -141,3 +141,16 @@ select DAYS_INSTALMENT,DAYS_ENTRY_PAYMENT from installments_payments limit 5;
 select id_demande,count(AMT_BALANCE) from credit_card_balance group by id_demande;
 
 select id_demande,count(1) from paiements  group by id_demande;
+
+
+select sk_id_curr,days_decision,weekday_appr_process_start
+from previous_application
+where days_decision = '-3';
+
+select sk_id_curr,count(sk_id_prev),min(days_decision::numeric)
+from previous_application group by sk_id_curr
+having count(sk_id_prev)>2
+order by min(days_decision::numeric);
+
+
+select sk_id_prev,DAYS_DECISION from previous_application where sk_id_curr = '163545'
