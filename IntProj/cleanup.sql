@@ -41,4 +41,3 @@ $$ LANGUAGE plpgsql;
 
 /* cleanup */
 call yk_cleanup();
-COMMIT;

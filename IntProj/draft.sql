@@ -10,15 +10,9 @@
 /* export */
 --COPY sample_submission TO '/home/jovyan/ecam_ds/data/sample_submission_db.csv' DELIMITER ',' CSV HEADER;
 
---ALTER TABLE artistes ADD CONSTRAINT ganre_limit CHECK (ganre in ('ROCK','Hard Rock', 'Jazz','chanson','pop')); 
-
 --ALTER TABLE chansons
 --	ALTER COLUMN artiste TYPE varchar(60);
 --ALTER TABLE chansons ADD constraint fk_artiste foreign key (artiste) REFERENCES artistes (nom);
-
---GRANT SELECT ON artistes TO PUBLIC;
---GRANT SELECT,INSERT,UPDATE ON albums TO PUBLIC;
---GRANT ALL PRIVILEGES ON chansons TO PUBLIC;
 
 --SELECT column_name,ordinal_position
 --  FROM information_schema.columns 
@@ -148,3 +142,5 @@ select sk_id_curr,count(sk_id_prev),min(days_decision::numeric)
 from previous_application group by sk_id_curr
 having count(sk_id_prev)>2
 order by min(days_decision::numeric);
+
+select * from client;

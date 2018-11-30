@@ -22,7 +22,7 @@
  * */
 
 --Creation of tables based on data structure table 
-CALL yk_create_tables('/home/jovyan/ecam_ds/data/input/',FALSE);
+CALL yk_create_tables('/home/jovyan/ecam_ds/data/input/',TRUE);
 
 ALTER TABLE application_train DROP COLUMN target;
 create table if not exists application as (
@@ -74,7 +74,7 @@ create table demande_de_credit as (
 	select 
 	p.sk_id_prev as id_demande,
 	p.sk_id_curr as id_client,
-	(NOW() - (interval '2000 days') + (random() * (interval '1800 days')))::date as date_de_demande,
+	(NOW() - (interval '100 days') + (interval '1 day' * days_decision::smallint))::date as date_de_demande,
 	c.id_type  as type_de_credit,
 	a.id_type as type_de_achat,
 	p.amt_goods_price as prix_de_achat,
@@ -195,8 +195,8 @@ group by a_t.nom_de_type;
 
 ----
 
-select c."month",max(d.id_demande)
+select c."year",count(d.id_demande)
 from calendar c
 left join demande_de_credit d on c."date"= d.date_de_demande
-group by c.month
-order by month
+group by c.year
+order by year
