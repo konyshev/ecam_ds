@@ -148,6 +148,3 @@ select sk_id_curr,count(sk_id_prev),min(days_decision::numeric)
 from previous_application group by sk_id_curr
 having count(sk_id_prev)>2
 order by min(days_decision::numeric);
-
-
-select sk_id_prev,DAYS_DECISION from previous_application where sk_id_curr = '163545'
