@@ -140,9 +140,11 @@ select c.gender
   from demande_de_credit d
   left join client c on d.id_client = c.id_client
 group by c.gender;
+
+--min max
 --------------
 
-
+--percantage
 select t.range as "age when demande range",
 		sum(CASE WHEN d.type_accompagne='Family' THEN 1 else 0 END) count_of_family,
 		sum(CASE WHEN d.type_accompagne='Group of people' THEN 1 else 0 END) count_of_group,
@@ -193,8 +195,8 @@ group by a_t.nom_de_type;
 
 ----
 
-select c.year,count(d.id_demande)
+select c."month",max(d.id_demande)
 from calendar c
 left join demande_de_credit d on c."date"= d.date_de_demande
-group by c.year
-order by year
+group by c.month
+order by month
