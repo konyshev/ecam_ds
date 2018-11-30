@@ -59,20 +59,17 @@ FROM information_schema.columns
 WHERE table_schema = 'public'
   AND table_name   = 'credit_card_balance';
 
-
-select 'application' as text ,count(1) from application
+select * from yk_data_struct;
+ 
+select 'calendar' as text ,count(1) from calendar
 union all
-select 'credit_card_balance' as text ,count(1) from credit_card_balance
+select 'credit_types' as text ,count(1) from credit_types
 union all
-select 'installments_payments' as text ,count(1) from installments_payments
+select 'demande_de_credit' as text ,count(1) from demande_de_credit
 union all
-select 'previous_application' as text ,count(1) from previous_application
+select 'client' as text ,count(1) from client
 union all
-select 'pos_cash_balance' as text ,count(1) from pos_cash_balance
-union all
-select 'bureau' as text ,count(1) from bureau
-union all
-select 'bureau_balance' as text ,count(1) from bureau_balance;
+select 'achat_types' as text ,count(1) from achat_types
 
 
 select * from previous_application limit 5;
