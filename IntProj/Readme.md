@@ -10,10 +10,10 @@
 
 ## Reproducing steps:  
 * Install utilities from [Prerequisites](
-        ecam_ds/IntProj/Readme.md#prerequisites) section 
+        Readme.md#prerequisites) section 
 * Download data from [Home Credit Default Risk Competition](https://www.kaggle.com/c/home-credit-default-risk) unzip it and place to folder `~/Downloads/homeCreditData/to_db` on your local machine
-* Download file [docker-compose.yml](ecam_ds/docker_ecam/docker-compose.yml)  
-* Navigate to folder with [docker-compose.yml](ecam_ds/docker_ecam/docker-compose.yml) by terminal and type:  
+* Download file [docker-compose.yml](../docker_ecam/docker-compose.yml)  
+* Navigate to folder with [docker-compose.yml](../docker_ecam/docker-compose.yml) by terminal and type:  
 `docker-compose up --bulid`
 * Docker is up when you see following message in your terminal:  
 `LOG:  database system is ready to accept connections`  
@@ -26,7 +26,7 @@
 `\i ./IntProjCleanup.sql;` - perform initial cleanup   
 `\i ./IntProjHelpers.sql;` - create functions and procedures  
 `\i ./IntProjMain.sql;` - create and fill tables  
-* To save results of queries from file [IntProjRequests.sql](ecam_ds/IntProj/IntProjRequests.sql) to file `result.txt` please run:  
+* To save results of queries from file [IntProjRequests.sql](IntProjRequests.sql) to file `result.txt` please run:  
 `\o results.txt \i ./IntProjRequests.sql`
 * To disconnect from database please type:    
 `\q`
