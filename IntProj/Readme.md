@@ -17,7 +17,7 @@
 `docker-compose up --bulid`
 * Docker is up when you see following message in your terminal:  
 `LOG:  database system is ready to accept connections`  
-* Open another terminal and navigate to folder [IntProj](ecam_ds/IntProj) on your local machine
+* Open another terminal and navigate to folder [IntProj](../IntProj) on your local machine
 * Connect to PostgreSQL server by command:  
 `psql postgresql://localhost:5432/postgres --username=postgres`
 * Setup notification level to *WARNING* to reduce amount of info from db:  
