@@ -1,5 +1,5 @@
 # Projet 'Intégration des données'
-\* Described steps supposed to be executed under OS linux
+\* Described steps are supposed to be executed under OS linux
 ## Prerequisites:
 
 * __Docker__  
