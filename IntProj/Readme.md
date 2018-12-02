@@ -10,7 +10,7 @@
 
 ## Reproducing steps:  
 * Install utilities from [Prerequisites](
-        ecam_ds/IntProj/Readme.md#srerequisites) section 
+        ecam_ds/IntProj/Readme.md#prerequisites) section 
 * Download data from [Home Credit Default Risk Competition](https://www.kaggle.com/c/home-credit-default-risk) unzip it and place to folder `~/Downloads/homeCreditData/to_db` on your local machine
 * Download file [docker-compose.yml](ecam_ds/docker_ecam/docker-compose.yml)  
 * Navigate to folder with [docker-compose.yml](ecam_ds/docker_ecam/docker-compose.yml) by terminal and type:  
