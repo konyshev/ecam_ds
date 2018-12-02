@@ -48,7 +48,7 @@ BEGIN
 				EXTRACT(YEAR FROM d.date)::SMALLINT AS YEAR,
 				EXTRACT(MONTH FROM d.date)::SMALLINT AS MONTH,
 				EXTRACT(WEEK FROM d.date)::SMALLINT AS week_of_year,
-				EXTRACT(dow	FROM d.date)::SMALLINT AS weekday,
+				EXTRACT(isodow	FROM d.date)::SMALLINT AS weekday,
 				EXTRACT(DAY	FROM d.date)::SMALLINT AS day_of_month
 			FROM
 				(
@@ -92,7 +92,7 @@ BEGIN
 	INSERT INTO	yk_data_struct VALUES ('achat_types');
 	
 	CALL yk_change_column_types('yk_data_struct');
-	
+
 	DELETE FROM demande_de_credit
 		WHERE id_client IN (
 			SELECT
