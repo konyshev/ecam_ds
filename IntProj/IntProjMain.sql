@@ -4,7 +4,7 @@ DECLARE
 	CALENDAR_DELTA CONSTANT INTERVAL := INTERVAL '10 years';
 BEGIN
 	--Creation of tables based on data structure table 
-	CALL yk_create_tables('/home/jovyan/ecam_ds/data/input/',TRUE);
+	CALL yk_create_tables('/home/jovyan/ecam_ds/data/input/',FALSE);
 	
 	ALTER TABLE	application_train DROP	COLUMN target;
 	
