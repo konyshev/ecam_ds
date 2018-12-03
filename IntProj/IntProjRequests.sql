@@ -1,10 +1,16 @@
 SELECT
 	c.gender ,
 	COUNT(d.id_demande) "count" ,
-	to_char(PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY prix_de_achat),'999999999.99') med_of_prix ,
-	to_char(AVG(d.montant_demande-d.montant_credit),'999999999.99') "avg (demande - credit)" ,
-	to_char(SUM(CASE WHEN d.status = 'Approved' THEN 1 ELSE 0 END)::FLOAT / COUNT(d.id_demande)* 100,'99.99 %') "% of approved" ,
-	to_char(SUM(CASE WHEN d.status = 'Refused' THEN 1 ELSE 0 END)::FLOAT / COUNT(d.id_demande)* 100,'99.99 %') "% of refused"
+	to_char(PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY prix_de_achat),
+				'999 999 999.99') med_of_prix ,
+	to_char(MIN(d.montant_demande),'999 999 999.99') "min demande" ,
+	to_char(MAX(d.montant_demande),'999 999 999.99') "max demande" ,
+	to_char(AVG(d.montant_demande-d.montant_credit),
+				'999 999 999.99') "avg (demande - credit)" ,
+	to_char(SUM(CASE WHEN d.status = 'Approved' THEN 1 ELSE 0 END)::FLOAT 
+					/ COUNT(d.id_demande)* 100,'99.99 %') "% of approved" ,
+	to_char(SUM(CASE WHEN d.status = 'Refused' THEN 1 ELSE 0 END)::FLOAT 
+					/ COUNT(d.id_demande)* 100,'99.99 %') "% of refused"
 FROM
 	demande_de_credit d
 	LEFT JOIN client c ON d.id_client = c.id_client
@@ -25,18 +31,24 @@ WITH age_range AS (
 		(
 		SELECT
 			d.id_demande,
-			EXTRACT(YEAR FROM age(d.date_de_demande,c.birthday))::SMALLINT AS age_when_demande
+			EXTRACT(YEAR FROM age(d.date_de_demande,
+								c.birthday))::SMALLINT AS age_when_demande
 		FROM
 			demande_de_credit d
 		LEFT JOIN client c ON d.id_client = c.id_client )a 
 )
 SELECT
 	a.range AS "age when demande range", 
-	to_char(SUM(CASE WHEN d.type_accompagne = 'Family' THEN 1 ELSE 0 END)::FLOAT / COUNT(a.id_demande)* 100,'99.99 %') "% of family",
-	to_char(SUM(CASE WHEN d.type_accompagne = 'Group of people' THEN 1 ELSE 0 END)::FLOAT / COUNT(a.id_demande)* 100,'99.99 %') "% of group",
-	to_char(SUM(CASE WHEN d.type_accompagne = 'Unaccompanied' THEN 1 ELSE 0 END)::FLOAT / COUNT(a.id_demande)* 100,'99.99 %') "% of unaccompanied",
-	to_char(SUM(CASE WHEN d.type_accompagne = 'Children' THEN 1 ELSE 0 END)::FLOAT / COUNT(a.id_demande)* 100,'99.99 %') "%of children",
-	to_char(SUM(CASE WHEN d.type_accompagne = 'Spouse, partner' THEN 1 ELSE 0 END)::FLOAT / COUNT(a.id_demande)* 100,'99.99 %') "% of spouse"
+	to_char(SUM(CASE WHEN d.type_accompagne = 'Family' THEN 1 ELSE 0 END)::FLOAT 
+				/ COUNT(a.id_demande)* 100,'99.99 %') "% of family",
+	to_char(SUM(CASE WHEN d.type_accompagne = 'Group of people' THEN 1 ELSE 0 END)::FLOAT 
+				/ COUNT(a.id_demande)* 100,'99.99 %') "% of group",
+	to_char(SUM(CASE WHEN d.type_accompagne = 'Unaccompanied' THEN 1 ELSE 0 END)::FLOAT 
+				/ COUNT(a.id_demande)* 100,'99.99 %') "% of unaccompanied",
+	to_char(SUM(CASE WHEN d.type_accompagne = 'Children' THEN 1 ELSE 0 END)::FLOAT 
+				/ COUNT(a.id_demande)* 100,'99.99 %') "%of children",
+	to_char(SUM(CASE WHEN d.type_accompagne = 'Spouse, partner' THEN 1 ELSE 0 END)::FLOAT 
+				/ COUNT(a.id_demande)* 100,'99.99 %') "% of spouse"
 FROM
 	age_range a
 INNER JOIN demande_de_credit d ON d.id_demande = a.id_demande
@@ -63,7 +75,7 @@ WITH age_range AS (
 		LEFT JOIN client c ON d.id_client = c.id_client )a 
 )
 SELECT
-	a_t.nom_de_type,
+	a_t.nom_de_type as "Type de achat", 
 	SUM(CASE WHEN a_r.range = '0-25' THEN 1 ELSE 0 END) "0-25",
 	SUM(CASE WHEN a_r.range = '25-40' THEN 1 ELSE 0 END) "25-40",
 	SUM(CASE WHEN a_r.range = '40-65' THEN 1 ELSE 0 END) "40-65",
