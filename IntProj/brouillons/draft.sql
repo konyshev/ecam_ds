@@ -144,3 +144,50 @@ having count(sk_id_prev)>2
 order by min(days_decision::numeric);
 
 select * from client;
+
+
+
+-- demande by education_type
+select education_type,count(id_demande), max(prix_de_achat), max(montant_credit) 
+from client c 
+join demande_de_credit d using(id_client)
+group by education_type;
+
+---
+
+select distinct status from demande_de_credit;
+select * from calendar;
+
+
+select weekday
+,to_char(SUM(CASE WHEN d.status = 'Approved' THEN 1 ELSE 0 END)::FLOAT / COUNT(d.id_demande)* 100,'99.99') "% of Approved"
+from calendar c 
+join demande_de_credit d on d.date_de_demande = c."date"
+group by weekday
+order by 2 desc;
+---
+
+select weekday
+,to_char(SUM(CASE WHEN d.status = 'Refused' THEN 1 ELSE 0 END)::FLOAT / COUNT(d.id_demande)* 100,'99.99 %') "% of Refused"
+from calendar c 
+join demande_de_credit d on d.date_de_demande = c."date"
+group by weekday
+order by 2 desc;
+
+
+--
+
+select d1.type_accompagne
+,to_char(SUM(CASE WHEN d2.status = 'Approved' THEN 1 ELSE 0 END)::FLOAT / COUNT(d2.id_demande)* 100,'99.99') "% of Approved"
+from demande_de_credit d1 
+join demande_de_credit d2 using(date_de_demande)
+group by d1.type_accompagne
+order by 2 desc;
+---
+
+select d1.type_accompagne
+,to_char(SUM(CASE WHEN d2.status = 'Refused' THEN 1 ELSE 0 END)::FLOAT / COUNT(d2.id_demande)* 100,'99.99')::float "% of Refused"
+from demande_de_credit d1 
+join demande_de_credit d2 using(date_de_demande)
+group by d1.type_accompagne
+order by 2 DESC;
