@@ -24,7 +24,7 @@ BEGIN
 			FROM
 				application 
 		);	
-	DROP TABLE	application;
+--	DROP TABLE	application;
 	
 	CREATE TABLE credit_types AS (
 			SELECT
@@ -83,7 +83,7 @@ BEGIN
 				a.nom_de_type = p.name_goods_category 
 		);
 
-	DROP TABLE previous_application;
+--	DROP TABLE previous_application;
 	
 	INSERT INTO	yk_data_struct VALUES ('calendar');
 	INSERT INTO	yk_data_struct VALUES ('credit_types');

@@ -193,6 +193,8 @@ group by d1.type_accompagne
 order by 2 DESC;
 
 
+select DISTINCT nom_de_type from credit_types;
+
 select days_decision from previous_application;
 
 
