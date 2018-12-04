@@ -1,4 +1,8 @@
 *.csv
+*.png
+*.jpeg
+*.jpg
+*.svg
 notes
 *.data
 .~lock*

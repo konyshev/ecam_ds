@@ -191,3 +191,38 @@ from demande_de_credit d1
 join demande_de_credit d2 using(date_de_demande)
 group by d1.type_accompagne
 order by 2 DESC;
+
+
+select days_decision from previous_application;
+
+
+WITH age_range AS (
+	SELECT	a.id_demande,
+		CASE
+			WHEN a.age_when_demande > 0	AND a.age_when_demande < 25 THEN '0-25'
+			WHEN a.age_when_demande >= 25 AND a.age_when_demande < 40 THEN '25-40'
+			WHEN a.age_when_demande >= 40 AND a.age_when_demande < 65 THEN '40-65'
+			WHEN a.age_when_demande >= 65 THEN '65+'
+		END AS RANGE
+	FROM
+		(
+		SELECT
+			d.id_demande,
+			EXTRACT(YEAR FROM age(d.date_de_demande,c.birthday))::SMALLINT AS age_when_demande
+		FROM
+			demande_de_credit d
+		LEFT JOIN client c ON d.id_client = c.id_client )a 
+)
+SELECT
+	a_t.nom_de_type as "Type de achat", 
+	SUM(CASE WHEN a_r.range = '0-25' THEN 1 ELSE 0 END) "0-25",
+	SUM(CASE WHEN a_r.range = '25-40' THEN 1 ELSE 0 END) "25-40",
+	SUM(CASE WHEN a_r.range = '40-65' THEN 1 ELSE 0 END) "40-65",
+	SUM(CASE WHEN a_r.range = '65+' THEN 1 ELSE 0 END) "65+",
+	COUNT(d.id_demande) "Total"
+FROM
+	age_range a_r
+	INNER JOIN demande_de_credit d ON d.id_demande = a_r.id_demande
+	INNER JOIN achat_types a_t ON a_t.id_type = d.type_de_achat
+GROUP BY a_t.nom_de_type having COUNT(d.id_demande) > 10000
+ORDER BY "Total" DESC;
