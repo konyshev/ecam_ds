@@ -6,4 +6,3 @@
 notes
 *.data
 .~lock*
-docker_mysql/
