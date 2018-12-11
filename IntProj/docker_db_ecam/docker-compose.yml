@@ -1,4 +1,4 @@
-version: '2'
+version: '3.5'
 services:
   db:
     image: postgres:latest
@@ -8,5 +8,10 @@ services:
     ports: 
       - "5432:5432"
     container_name: container_ecam_db
+    networks:
+      - custom_network
+networks:
+  custom_network:
+    name: ecam_db_network
 volumes:
   ecam_db_pgdata:
