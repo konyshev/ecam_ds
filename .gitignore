@@ -6,3 +6,5 @@
 notes
 *.data
 .~lock*
+*.class
+*scikit_learn_data/

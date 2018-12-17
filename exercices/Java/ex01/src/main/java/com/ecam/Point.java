@@ -46,7 +46,8 @@ public class Point implements Comparable {
         return this.y;
     }
 
-    public String info() {
+    @Override
+    public String toString() {
         return this.getName()+":("+this.getX()+","+this.getY()+")";
     }
 
