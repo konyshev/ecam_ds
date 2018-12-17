@@ -8,3 +8,4 @@ notes
 .~lock*
 *.class
 *scikit_learn_data/
+*.ipynb_checkpoints/
