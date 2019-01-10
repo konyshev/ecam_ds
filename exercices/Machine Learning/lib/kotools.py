@@ -4,16 +4,12 @@ Yaroslav Konyshev datascience toolset
 
 import numpy as _np
 import pandas as _pd
-import matplotlib.pyplot as plt
-import gc
 
-from sklearn.preprocessing import StandardScaler,minmax_scale,scale
-from sklearn.model_selection import train_test_split
+import sklearn.preprocessing as _preproc
 
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import roc_auc_score, roc_curve, precision_score, recall_score
+from lightgbm import LGBMClassifier as _LGBMClassifier
+
+from sklearn.model_selection import cross_val_score as _cross_val_score
 
 def __convert_col_to_proper_int(df_col):
     col_type = df_col.dtype
@@ -154,56 +150,23 @@ def df_impute(df_, strategy = 'median'):
 def df_scale(df_, strategy = 'standart'): 
     for col in df_.columns:
         if strategy == 'standart':
-            df_[col] = StandardScaler().fit_transform(df_[col].values.reshape(-1,1))
+            df_[col] = _preproc.StandardScaler().fit_transform(df_[col].values.reshape(-1,1))
         elif strategy == 'minmax':
-            df_[col] = minmax_scale(df_[col].values.reshape(-1,1))
+            df_[col] = _preproc.minmax_scale(df_[col].values.reshape(-1,1))
     return df_
 
-# For selecting the best model for train set by simple launching the several classic models
-def plot_roc_curves(df_train_, y, random_state = 0):
-    
-    f_imp = _pd.DataFrame(index = df_train_.columns)
-    
-    X_trn, X_tst, y_trn, y_tst = train_test_split(df_train_, 
-                                                  y, 
-                                                  test_size = 0.2, random_state = random_state)
+class DataFrameEvolution:
+    def __init__(self, df):
+        self.__df_raw = df
+        self.__history  = _pd.DataFrame(columns = ['Comment','LGBM CV3 ROC AUC'])
 
-    plt.figure(figsize = (7, 7))
-    plt.plot([0, 1], [0, 1], 'k--')
-    
-    X_trn.fillna(X_trn.mean(axis = 0), inplace = True)
-    X_tst.fillna(X_tst.mean(axis = 0), inplace = True)
-        
-    estimator = RandomForestClassifier(random_state = random_state)
-    estimator.fit(X_trn, y_trn)
-    y_pred_rf = estimator.predict_proba(X_tst)[:, 1]
-    fpr_rf, tpr_rf, _ = roc_curve(y_tst, y_pred_rf)
-    f_imp['RF'] = estimator.feature_importances_
-    plt.plot(fpr_rf, tpr_rf, label = 'RF: ' + str(roc_auc_score(y_tst, y_pred_rf)))
-    
-    estimator = LogisticRegression(random_state = random_state)
-    estimator.fit(X_trn, y_trn)
-    y_pred_lrg = estimator.predict_proba(X_tst)[:, 1]
-    fpr_lrg, tpr_lrg, _ = roc_curve(y_tst, y_pred_lrg)
-    plt.plot(fpr_lrg, tpr_lrg, label = 'LogR: ' + str(roc_auc_score(y_tst, y_pred_lrg)))
-    
-    X_trn = _pd.DataFrame(scale(X_trn), index = X_trn.index, columns = X_trn.columns)
-    X_tst = _pd.DataFrame(scale(X_tst), index = X_tst.index, columns = X_tst.columns)
-    
-    estimator = KNeighborsClassifier()
-    estimator.fit(X_trn, y_trn)
-    y_pred_knn = estimator.predict_proba(X_tst)[:, 1]
-    fpr_knn, tpr_knn, _ = roc_curve(y_tst, y_pred_knn)
-    plt.plot(fpr_knn, tpr_knn, label = 'KNN: ' + str(roc_auc_score(y_tst, y_pred_knn)))
-    
-    del X_trn, X_tst, y_trn, y_tst
-    gc.collect()
-    
-    plt.xlabel('False positive rate')
-    plt.ylabel('True positive rate')
-    plt.title('ROC curve')
-    plt.legend(loc = 'best')
-    plt.show()
-    
-    f_imp['mean'] = f_imp.mean(axis = 1)
-    return f_imp
+    def test(self,X,y,comment,scoring='roc_auc'):
+        lgbm = _LGBMClassifier(random_state = 0)
+        score = _cross_val_score(lgbm, X, y, cv=3,scoring = scoring).mean()
+        self.__history.loc[-1] = [comment,score] 
+        self.__history.index = self.__history.index + 1
+        self.__history = self.__history.sort_index() 
+        return score
+
+    def get_history(self):
+        return self.__history
