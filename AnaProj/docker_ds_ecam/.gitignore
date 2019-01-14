@@ -1,9 +1,0 @@
-/.cache
-/.config
-/.ipynb_checkpoints
-/.ipython
-/.jupyter
-/.local
-*.csv
-*.data
-*.pkl
