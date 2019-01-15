@@ -12,3 +12,4 @@ notes
 *input/
 __pycache__/
 .vscode/
+*.zip

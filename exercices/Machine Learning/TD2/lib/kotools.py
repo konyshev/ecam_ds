@@ -144,6 +144,8 @@ def df_impute(df_, strategy = 'median'):
             val = df_[col].median()
         if strategy == 'mean':
             val = df_[col].mean()
+        if strategy == 'mode':
+            val = df_[col].mode()
         df_[col].fillna(val,inplace = True) 
     return df_
 
@@ -158,15 +160,28 @@ def df_scale(df_, strategy = 'standart'):
 class DataFrameEvolution:
     def __init__(self, df):
         self.__df_raw = df
-        self.__history  = _pd.DataFrame(columns = ['Comment','LGBM CV3 ROC AUC'])
+        self.__history  = _pd.DataFrame(columns = ['Step Group','Step name','LGBM CV3 ROC AUC','Comment'])
 
-    def test(self,X,y,comment,scoring='roc_auc'):
+    def test(self,X,y,step_group,step_name,scoring='roc_auc'):
         lgbm = _LGBMClassifier(random_state = 0)
         score = _cross_val_score(lgbm, X, y, cv=3,scoring = scoring).mean()
-        self.__history.loc[-1] = [comment,score] 
+        self.__history.loc[-1,['Step Group','Step name','LGBM CV3 ROC AUC']] = [step_group,step_name,score] 
         self.__history.index = self.__history.index + 1
         self.__history = self.__history.sort_index() 
         return score
 
     def get_history(self):
         return self.__history
+
+    def clear_history(self):
+        self.__history = _pd.DataFrame(columns = ['Step Group','Step name','LGBM CV3 ROC AUC','Comment'])
+
+    def add_step_comment(self,step_name,comment):
+        idx = self.__history[self.__history['Step name'] == step_name].index
+        self.__history.at[idx, 'Comment'] = comment
+
+    def get_step_by_name(self,step_name):
+        return self.__history[self.__history['Step name'] == step_name]
+
+    def get_step_by_group_name(self,step_group):
+        return self.__history[self.__history['Step Group'] == step_group]
