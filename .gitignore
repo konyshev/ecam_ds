@@ -3,6 +3,7 @@
 *.jpeg
 *.jpg
 *.svg
+*.html
 notes
 *.data
 .~lock*
