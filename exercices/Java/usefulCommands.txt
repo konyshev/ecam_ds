@@ -1,5 +1,0 @@
-mvn exec:java -Dexec.mainClass="com.example.Main" [-Dexec.args="argument1"] ...
-
-mvn install
-mvn compile
-from folder target/classes java com.ecam.Main

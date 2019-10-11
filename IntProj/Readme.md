@@ -12,8 +12,8 @@
 * Install utilities from [Prerequisites](
         Readme.md#prerequisites) section 
 * Download data from [Home Credit Default Risk Competition](https://www.kaggle.com/c/home-credit-default-risk) unzip it and place to folder `~/Downloads/homeCreditData/to_db` on your local machine
-* Download file [docker-compose.yml](../docker_ecam/docker-compose.yml)  
-* Navigate to folder with [docker-compose.yml](../docker_ecam/docker-compose.yml) by terminal and type:  
+* Download file [docker-compose.yml](docker-compose.yml)  
+* Navigate to folder with [docker-compose.yml](docker-compose.yml) by terminal and type:  
 `docker-compose up --bulid`
 * Docker is up when you see following message in your terminal:  
 `LOG:  database system is ready to accept connections`  
